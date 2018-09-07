@@ -1,5 +1,7 @@
 Fast and Accurate Graph Stream Summarization
 =======
+These are the codes used in the experiments of the fundamental paper. Codes for the extra experiments in the revised paper are under arrangement to make it more organized， and will be posted in several days.
+------------
 GSS.h
 ------------
 Graph Stream Sketch user interface:
