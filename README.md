@@ -16,7 +16,7 @@ Details can be seen in the comments in the code
 
 GSS_label.h
 ------------
-Graph Stream Sketch for graph pattermatching, revised a bit for label storage. It takes integer as node ID and labels. The node ID should be int type from 1 to n where n is the number of nodes, so is the queried graph. ID map may be needed when use.
+Graph Stream Sketch for subgraph matching, revised a bit for label storage. It takes integer as node ID and labels. The node ID should be int type from 1 to n where n is the number of nodes, so is the queried graph. ID map may be needed when use.
 
 TCM.h
 ------------
