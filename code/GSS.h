@@ -584,7 +584,7 @@ int GSS::nodeValueQuery(string s1, int type) // s1 is the ID of the queried node
 				int pos = p1 + k*w;
 				for (int j = 0; j < s; ++j)
 				{
-					if (type == 0 && (((value[pos].idx >> ((j << 3) + 4))&((1 << 4) - 1)) == i) && (value[pos].dst[j] == g1))
+					if (type == 1 && (((value[pos].idx >> ((j << 3) + 4))&((1 << 4) - 1)) == i) && (value[pos].dst[j] == g1))
 					{
 						weight += value[pos].weight[j];
 					}
