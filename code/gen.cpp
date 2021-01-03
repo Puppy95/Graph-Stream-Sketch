@@ -34,7 +34,7 @@ pii randEdge() {
 int main() {
     freopen("tmp.in", "w", stdout);
 
-    srand(233);
+    srand(123);
 
     int q = randint(500, 1000);
 

@@ -22,6 +22,7 @@ using namespace std;
 
 #include "Mapper.h"
 
+
 struct basket
 {
     short src[Roomnum];
@@ -32,181 +33,122 @@ struct basket
 
 struct Buffer
 {
-    struct LinkNode
+    struct Edge
     {
         unsigned int v;
         int weight;
-        LinkNode *next;
+        Edge *next;
+
+        Edge() {
+            next = NULL;
+        }
+        Edge(int _v, int _weight) {
+            v = _v;
+            weight = _weight;
+            next = NULL;
+        }
     };
 
-    struct Node {
-        unsigned int u;
-        LinkNode *firstEdge;
-        Node *nextNode;
-    };
 
-    Node *node_header;
+    unordered_map<int, Edge*> idToNode;
 
-    Buffer() { node_header = NULL; }
-    ~Buffer() {
-        Node *cur = node_header;
-        while(cur) {
-            LinkNode *curEdge = cur->firstEdge;
-            while(curEdge) {
-                LinkNode *tmp = curEdge;
-                curEdge = curEdge->next;
-                delete tmp;
-            }
-            Node *tmp = cur;
-            cur = cur->nextNode;
-            delete tmp;
-        }
-    }
 
-    Node* findNode(int u) {
-        Node *cur = node_header;
-        while (cur && cur->u != u) {
-            cur = cur->nextNode;
-        }
-        return cur;
+    Buffer() {
+        idToNode.clear();
     }
 
     void addEdge(int u, int v, int w) {
-        Node *nd = findNode(u);
-        if (nd) {
-            LinkNode *curEdge = nd->firstEdge;
+        if (idToNode.find(u) == idToNode.end()) {
+            Edge* newEdge = new Edge(v, w);
+            idToNode[u] = newEdge;
+        } else {
+            Edge* curEdge = idToNode[u];
             while(curEdge && curEdge->v != v) {
                 curEdge = curEdge->next;
             }
-            if (curEdge) {
+
+            if (curEdge != NULL) {
                 curEdge->weight += w;
             } else {
-                LinkNode *newEdge = new LinkNode;
-                newEdge->v = v;
-                newEdge->weight = w;
-                newEdge->next = nd->firstEdge;
-                nd->firstEdge = newEdge;
+                Edge* newEdge = new Edge(v, w);
+                newEdge->next = idToNode[u];
+                idToNode[u] = newEdge;
             }
-        } else {
-            Node *newNode = new Node;
-            LinkNode *newEdge = new LinkNode;
-            newEdge->v = v;
-            newEdge->weight = w;
-            newEdge->next = NULL;
-
-            newNode->u = u;
-            newNode->firstEdge = newEdge;
-            newNode->nextNode = node_header;
-            node_header = newNode;
         }
     }
 
     int queryEdge(int u, int v) {
-        Node *nd = findNode(u);
-        if (nd == NULL) {
+        if (idToNode.find(u) == idToNode.end()) {
             return 0;
         }
-
-        LinkNode *curEdge = nd->firstEdge;
+        Edge* curEdge = idToNode[u];
         while(curEdge && curEdge->v != v) {
             curEdge = curEdge->next;
         }
-
-        if (curEdge == NULL) {
-            return 0;
+        if (curEdge) {
+            return curEdge->weight;
         }
-
-        //printf("u=%d v=%d w=%d\n", nd->u, curEdge->v, curEdge->weight);
-
-        return curEdge->weight;
+        return 0;
     }
 
     bool eraseEdge(int u, int v) {
-        Node *nd = findNode(u);
-        if (nd == NULL) {
+        if (idToNode.find(u) == idToNode.end())
             return false;
-        }
 
-        LinkNode *curEdge = nd->firstEdge;
-        LinkNode *lastEdge = NULL;
+        Edge* curEdge = idToNode[u];
+        Edge* lastEdge = NULL;
         while(curEdge && curEdge->v != v) {
             lastEdge = curEdge;
             curEdge = curEdge->next;
         }
 
-        if (curEdge == NULL) {
-            return false;
-        }
-
-        if (curEdge == nd->firstEdge) {
-            //printf("erase from header : %d %d\n", u, v);
-            nd->firstEdge = curEdge->next;
-            delete curEdge;
-        } else {
-            //printf("erase from chain : %d %d\n", u, v);
-            lastEdge->next = curEdge->next;
-            delete curEdge;
-        }
-
-        if (nd->firstEdge == NULL) {
-            if (nd == node_header) {
-                node_header = nd->nextNode;
-                delete nd;
+        if (curEdge) {
+            if (lastEdge == NULL) {
+                idToNode[u] = curEdge->next;
             } else {
-                Node *cur = node_header;
-                Node *last = NULL;
-                while (cur != nd) {
-                    last = cur;
-                    cur = cur->nextNode;
-                }
-                last->nextNode = cur->nextNode;
-                delete cur;
+                lastEdge->next = curEdge->next;
             }
+            delete curEdge;
         }
-        return true;
+
+        return false;
     }
 
     void queryPrecursor(int u, vector<int>& retID) {
-        Node *curNode = node_header;
-        while (curNode) {
-            LinkNode *curEdge = curNode->firstEdge;
-            while (curEdge) {
+        for (unordered_map<int, Edge*>::iterator it = idToNode.begin(); it != idToNode.end(); ++it) {
+            Edge* curEdge = it->second;
+            while(curEdge) {
                 if (curEdge->v == u) {
-                    retID.push_back(curNode->u);
+                    retID.push_back(it->first);
                     break;
                 }
                 curEdge = curEdge->next;
             }
-            curNode = curNode->nextNode;
         }
     }
 
     void querySuccessor(int u, vector<int>& retID) {
-        Node *nd = findNode(u);
-        if (nd) {
-            LinkNode *cur = nd->firstEdge;
-            while (cur) {
-                retID.push_back(cur->v);
-                cur = cur->next;
-            }
+        if (idToNode.find(u) == idToNode.end())
+            return;
+        Edge* curEdge = idToNode[u];
+        while(curEdge) {
+            retID.push_back(curEdge->v);
+            curEdge = curEdge->next;
         }
     }
 
     void print() {
-        Node *cur = node_header;
-        int cnt = 0;
-        puts("<-----------------------------");
-        while (cur) {
-            printf("+++u=%d:\n", cur->u);
-            LinkNode *curEdge = cur->firstEdge;
-            while (curEdge) {
-                printf("v=%d w=%d\n", curEdge->v, curEdge->weight);
-                assert(++cnt < 500);
+        puts("==============================");
+        for (unordered_map<int, Edge*>::iterator it = idToNode.begin(); it != idToNode.end(); ++it) {
+            Edge *curEdge = it->second;
+            printf("%d link to :\n", it->first);
+            while(curEdge) {
                 curEdge = curEdge->next;
+                printf("v=%d weight=%d\n", curEdge->v, curEdge->weight);
             }
-            cur = cur->nextNode;
+            puts("");
         }
-        puts("----------------------------->");
+        puts("==============================");
     }
 };
 
