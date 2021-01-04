@@ -8,6 +8,7 @@
 #define MAGIC_STRING "a$d%1*$sd"
 #define BAD_STRING "12#231$12"
 
+namespace {
 class Mapper_Naive {
     // 朴素的想法：按加入顺序编号，删除的元素放在队列中即可
 
@@ -86,29 +87,38 @@ bool Mapper_Naive::changeOne(std::string str) {
     mapper[origin_ID] = BAD_STRING;
     return insert(str);
 }
+}
 
 class Mapper {
 private:
     std::unordered_map<std::string, int> mapper;
     std::queue<int> validId;
     std::vector<std::string> idToStr;
+
+    std::vector<char*> counter;
     int startId, curId;
+    int r;
 
 public:
-    Mapper(int _startId) {
+    Mapper(int w, int _r) {
         while(validId.empty() == false)
             validId.pop();
         mapper.clear();
-        curId = startId = _startId;
+        r = _r;
+        curId = startId = w / r;
         idToStr.resize(startId);
+        counter.resize(startId);
+    }
+
+    ~Mapper() {
+        for (int i = 0; i < counter.size(); ++i) {
+            if (counter[i] != NULL) {
+                delete [] counter[i];
+            }
+        }
     }
 
     int insert(const std::string& s) {
-        // if (mapper.find(s) != mapper.end()) {
-        //     cerr << "str: " << s << endl;
-        // }
-        // assert(mapper.find(s) == mapper.end());
-
         if (mapper.find(s) != mapper.end())
             return -1;
 
@@ -117,9 +127,14 @@ public:
             id = validId.front();
             validId.pop();
             idToStr[id] = s;
+            memset(counter[id], 0, sizeof(char) * r * 2);
         } else {
             id = curId++;
             idToStr.push_back(s);
+
+            char* cnt_ele = new char[r * 2];
+            memset(cnt_ele, 0, sizeof(char) * r * 2);
+            counter.push_back(cnt_ele);
             assert(curId == idToStr.size());
         }
         mapper[s] = id;
@@ -136,17 +151,19 @@ public:
         mapper.erase(s);
         idToStr[id] = MAGIC_STRING;
         validId.push(id);
-        //cout << "erase : " << s << ",id:" << id << endl;
     }
 
     std::string getVal(int a) {
         std::string ret = idToStr[a];
-
-        // if (ret == MAGIC_STRING) {
-        //     cout << "a:" << a << endl;
-        // }
-
         assert(ret != MAGIC_STRING);
         return ret;
+    }
+
+    void addCounter(int id, int arr_idx, int val) {
+        counter[id][arr_idx] += val;
+    }
+
+    int getCounter(int id, int arr_idx) {
+        return counter[id][arr_idx];
     }
 };

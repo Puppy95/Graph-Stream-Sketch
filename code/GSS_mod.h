@@ -215,7 +215,7 @@ GSS::GSS(int width, int range, int p_num, int size, int f_num)
     value = new basket[w * w];
     memset(value, 0, sizeof(basket) * w * w);
     //mapper = new Mapper_Naive();
-    mapper = new Mapper(w / r); // g 的值不能等于0，所以要从w开始
+    mapper = new Mapper(w, r); // g 的值不能等于0，所以要从w开始
 }
 
 void GSS::gen_gh(const string& str, unsigned int& g, unsigned int& h, unsigned int& k) {
@@ -238,6 +238,9 @@ inline void GSS::setRoomVal(int pos, int room, int idx, int src, int dst, int we
     value[pos].weight[room] = weight;
 }
 
+
+// erase 的功能放在insert中了
+// 如果想重新使用需要修改度数相关的内容
 
 bool GSS::erase(const string& s1, const string& s2) {
     unsigned int g1, g2, h1, h2, k1, k2;
@@ -377,6 +380,9 @@ void GSS::insert(string s1, string s2, int weight)
                         deg.erase(k2);
                         mapper->erase(s2);
                     }
+
+                    mapper->addCounter(k1, index1, -1);
+                    mapper->addCounter(k2, r + index2, -1);
                 }
                 goto FINISHED;
             }
@@ -403,6 +409,10 @@ void GSS::insert(string s1, string s2, int weight)
             deg[k2]++;
         }
         setRoomVal(firstPos, rec_room, rec_idx, g1, g2, weight);
+        int index1 = rec_idx & ((1 << 4) - 1);
+        int index2 = (rec_idx >> 4) & ((1 << 4) - 1);
+        mapper->addCounter(k1, index1, 1);
+        mapper->addCounter(k2, r + index2, 1);
     } else {
         buffer->addEdge(k1, k2, weight);
         deg[k1]++;
@@ -431,6 +441,10 @@ void GSS::nodeSuccessorQuery(string s1, vector<string> &IDs) // query the succes
         tmp1[i] = (tmp1[i - 1] * timer + prime) % bigger_p;
     }
     for (int i = 0; i < r; i++) {
+
+        if (mapper->getCounter(k1, i) == 0)
+            continue;
+
         int p1 = (h1 + tmp1[i]) % (w/r);
         int p1_ = p1 + i * r;
         for (int k = 0; k < w; k++) {
@@ -483,6 +497,9 @@ void GSS::nodePrecursorQuery(string s1, vector<string> &IDs) // same as successo
     }
     for (int i = 0; i < r; i++)
     {
+        if (mapper->getCounter(k1, i + r) == 0)
+            continue;
+
         int p1 = (h1 + tmp1[i]) % (w/r);
         int p1_ = p1 + i * r;
         for (int k = 0; k < w; k++)
