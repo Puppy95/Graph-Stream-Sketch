@@ -14,8 +14,8 @@ int main() {
     freopen("tmp.in", "r", stdin);
     freopen("tmp.out", "w", stdout);
 
-    int w = 5;
-    int r = 2;
+    int w = 9;
+    int r = 3;
     int p = 9;
     int s = 1;
     int f = 2;

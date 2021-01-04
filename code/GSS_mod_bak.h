@@ -199,23 +199,30 @@ GSS::GSS(int width, int range, int p_num, int size, int f_num)
     s = size;  /*multiple rooms*/
     f = f_num; /*finger print lenth*/
 
-    assert(w % r == 0);
+
 
     buffer = new Buffer();
     value = new basket[w * w];
     memset(value, 0, sizeof(basket) * w * w);
     //mapper = new Mapper_Naive();
-    mapper = new Mapper(w / r); // g 的值不能等于0，所以要从w开始
+    mapper = new Mapper(w); // g 的值不能等于0，所以要从w开始
 }
 
 void GSS::gen_gh(const string& str, unsigned int& g, unsigned int& h, unsigned int& k) {
-
+    //unsigned int tmp = pow(2, f) - 1;
     k = mapper->insert(str);
     if (k == -1)
         k = mapper->getID(str);
+    //k = mapper->getID(str);
+    g = k / w;
+    // while(!g) {
+    //     mapper->changeOne(str);
+    //     k = mapper->getID(str);
+    //     g = k / w;
+    // }
 
-    g = k / (w / r);
-    h = k % (w / r);
+    // 地址值域一定要比w小
+    h = k % w;
 
 }
 
@@ -256,13 +263,10 @@ bool GSS::erase(const string& s1, const string& s2) {
         int index = key % (r * r);
         int index1 = index / r;
         int index2 = index % r;
-        int p1 = (h1 + tmp1[index1]) % (w / r);
-        int p2 = (h2 + tmp2[index2]) % (w / r);
+        int p1 = (h1 + tmp1[index1]) % w;
+        int p2 = (h2 + tmp2[index2]) % w;
 
-        int p1_ = index1 * r + p1;
-        int p2_ = index2 * r + p2;
-
-        int pos = p1_ * w + p2_;
+        int pos = p1 * w + p2;
         for (int j = 0; j < s; j++)
         {
             int idx = (index1 | (index2 << 4));
@@ -324,7 +328,8 @@ void GSS::insert(string s1, string s2, int weight)
     int *tmp2 = new int[r];
     tmp1[0] = g1;
     tmp2[0] = g2;
-    for (int i = 1; i < r; i++) {
+    for (int i = 1; i < r; i++)
+    {
         tmp1[i] = (tmp1[i - 1] * timer + prime) % bigger_p;
         tmp2[i] = (tmp2[i - 1] * timer + prime) % bigger_p;
     }
@@ -338,13 +343,11 @@ void GSS::insert(string s1, string s2, int weight)
         int index = key % (r * r);
         int index1 = index / r;
         int index2 = index % r;
-        int p1 = (h1 + tmp1[index1]) % (w / r);
-        int p2 = (h2 + tmp2[index2]) % (w / r);
+        int p1 = (h1 + tmp1[index1]) % w;
+        int p2 = (h2 + tmp2[index2]) % w;
         int idx = (index1 | (index2 << 4));
 
-        int p1_ = index1 * r + p1;
-        int p2_ = index2 * r + p2;
-        int pos = p1_ * w + p2_;
+        int pos = p1 * w + p2;
 
         for (int j = 0; j < s; j++)
         {
@@ -363,6 +366,33 @@ void GSS::insert(string s1, string s2, int weight)
             }
         }
     }
+
+    // key = g1 + g2;
+    // for (int i = 0; i < p; i++)
+    // {
+    //     key = (key * timer + prime) % bigger_p;
+    //     int index = key % (r * r);
+    //     int index1 = index / r;
+    //     int index2 = index % r;
+    //     int p1 = (h1 + tmp1[index1]) % w;
+    //     int p2 = (h2 + tmp2[index2]) % w;
+    //     int idx = (index1 | (index2 << 4));
+
+    //     int pos = p1 * w + p2;
+    //     for (int j = 0; j < s; ++j) {
+    //         if (value[pos].src[j] == 0)  {
+    //             // 注意这里需要先看看邻接表中是不是已经有已有的边了
+    //             int tmp_weight = buffer->queryEdge(k1, k2);
+    //             if (tmp_weight) {
+    //                 buffer->eraseEdge(k1, k2);
+    //                 weight += tmp_weight;
+    //             }
+
+    //             setRoomVal(pos, j, idx, g1, g2, weight);
+    //             goto FINISHED;
+    //         }
+    //     }
+    // }
 
     if (firstPos != -1) {
         int tmp_weight = buffer->queryEdge(k1, k2);
@@ -400,10 +430,9 @@ void GSS::nodeSuccessorQuery(string s1, vector<string> &IDs) // query the succes
         tmp1[i] = (tmp1[i - 1] * timer + prime) % bigger_p;
     }
     for (int i = 0; i < r; i++) {
-        int p1 = (h1 + tmp1[i]) % (w/r);
-        int p1_ = p1 + i * r;
+        int p1 = (h1 + tmp1[i]) % w;
         for (int k = 0; k < w; k++) {
-            int pos = p1_ * w + k;
+            int pos = p1 * w + k;
             for (int j = 0; j < s; ++j) {
                 if ((((value[pos].idx >> ((j << 3))) & ((1 << 4) - 1)) == i)
                     && (value[pos].src[j] == g1)) {
@@ -415,9 +444,9 @@ void GSS::nodeSuccessorQuery(string s1, vector<string> &IDs) // query the succes
                         shifter = (shifter * timer + prime) % bigger_p;
                     int tmp_h = k;
                     while (tmp_h < shifter)
-                        tmp_h += (w/r);
+                        tmp_h += w;
                     tmp_h -= shifter;
-                    int val = tmp_h + tmp_g * (w/r);
+                    int val = tmp_h + tmp_g * w;
                     retNo.push_back(val);
                 }
             }
@@ -452,11 +481,10 @@ void GSS::nodePrecursorQuery(string s1, vector<string> &IDs) // same as successo
     }
     for (int i = 0; i < r; i++)
     {
-        int p1 = (h1 + tmp1[i]) % (w/r);
-        int p1_ = p1 + i * r;
+        int p1 = (h1 + tmp1[i]) % w;
         for (int k = 0; k < w; k++)
         {
-            int pos = p1_ + k * w;
+            int pos = p1 + k * w;
             for (int j = 0; j < s; ++j)
             {
                 if ((((value[pos].idx >> ((j << 3) + 4)) & ((1 << 4) - 1)) == i) && (value[pos].dst[j] == g1))
@@ -469,11 +497,11 @@ void GSS::nodePrecursorQuery(string s1, vector<string> &IDs) // same as successo
                         shifter = (shifter * timer + prime) % bigger_p;
                     int tmp_h = k;
                     while (tmp_h < shifter)
-                        tmp_h += (w/r);
+                        tmp_h += w;
                     tmp_h -= shifter;
 
                     //int val = (tmp_h << f) + tmp_g;
-                    int val = tmp_h + tmp_g * (w/r);
+                    int val = tmp_h + tmp_g * w;
                     retNo.push_back(val);
                 }
             }
@@ -518,11 +546,9 @@ int GSS::edgeQuery(string s1, string s2) // s1 is the ID of the source node, s2 
         int index = key % (r * r);
         int index1 = index / r;
         int index2 = index % r;
-        int p1 = (h1 + tmp1[index1]) % (w / r);
-        int p2 = (h2 + tmp2[index2]) % (w / r);
-        int p1_ = index1 * r + p1;
-        int p2_ = index2 * r + p2;
-        int pos = p1_ * w + p2_;
+        int p1 = (h1 + tmp1[index1]) % w;
+        int p2 = (h2 + tmp2[index2]) % w;
+        int pos = p1 * w + p2;
         for (int j = 0; j < s; j++)
         {
             if ((((value[pos].idx >> (j << 3)) & ((1 << 8) - 1)) == (index1 | (index2 << 4)))

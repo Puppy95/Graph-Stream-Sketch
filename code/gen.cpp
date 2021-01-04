@@ -75,7 +75,6 @@ int main() {
             printf("e %d %d\n", tmp_edge.first, tmp_edge.second);
 
         } else if (ty == 2) {
-            //subty = 0;
             if (subty == 0) {
                 tmp_edge = randEdge();
                 printf("q %d %d\n", tmp_edge.first, tmp_edge.second);
