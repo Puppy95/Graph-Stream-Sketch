@@ -63,12 +63,22 @@ struct Buffer
             idToNode[u] = newEdge;
         } else {
             Edge* curEdge = idToNode[u];
+            Edge* lastEdge = NULL;
             while(curEdge && curEdge->v != v) {
+                lastEdge = curEdge;
                 curEdge = curEdge->next;
             }
 
             if (curEdge != NULL) {
                 curEdge->weight += w;
+                if (curEdge->weight == 0) {
+                    if (lastEdge == NULL) {
+                        idToNode[u] = curEdge->next;
+                    } else {
+                        lastEdge->next = curEdge->next;
+                    }
+                    delete curEdge;
+                }
             } else {
                 Edge* newEdge = new Edge(v, w);
                 newEdge->next = idToNode[u];
@@ -353,6 +363,21 @@ void GSS::insert(string s1, string s2, int weight)
                 && (value[pos].dst[j] == g2)) {
 
                 value[pos].weight[j] += weight;
+                if (value[pos].weight[j] == 0) {
+                    deg[k1]--;
+                    deg[k2]--;
+                    setRoomVal(pos, j, 0, 0, 0, 0);
+
+                    if (deg[k1] == 0) {
+                        deg.erase(k1);
+                        mapper->erase(s1);
+                    }
+
+                    if (deg[k2] == 0 && k2 != k1)  {
+                        deg.erase(k2);
+                        mapper->erase(s2);
+                    }
+                }
                 goto FINISHED;
             }
 
@@ -367,18 +392,24 @@ void GSS::insert(string s1, string s2, int weight)
     if (firstPos != -1) {
         int tmp_weight = buffer->queryEdge(k1, k2);
         if (tmp_weight) {
+            if (tmp_weight + weight == 0) {
+                buffer->eraseEdge(k1, k2);
+                goto FINISHED;
+            }
             buffer->eraseEdge(k1, k2);
             weight += tmp_weight;
+        } else {
+            deg[k1]++;
+            deg[k2]++;
         }
         setRoomVal(firstPos, rec_room, rec_idx, g1, g2, weight);
     } else {
         buffer->addEdge(k1, k2, weight);
+        deg[k1]++;
+        deg[k2]++;
     }
 
 FINISHED:
-    deg[k1]++;
-    deg[k2]++;
-
     delete[] tmp1;
     delete[] tmp2;
 

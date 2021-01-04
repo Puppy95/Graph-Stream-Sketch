@@ -43,7 +43,7 @@ int main() {
         int ty = randint(0, 99);
         int subty = randint(0, 2);
 
-        if (ty < 60) {
+        if (ty < 50) {
             ty = 0;
         } else if (ty < 70) {
             ty = 1;
@@ -63,16 +63,23 @@ int main() {
         if (ty == 0) {
             u = randint(1, n);
             v = randint(1, n);
-            w = randint(1, 1);
+            w = randint(1, 3);
             g[u][v] += w;
             s.insert(make_pair(u, v));
             printf("i %d %d %d\n", u, v, w);
 
         } else if (ty == 1) {
             tmp_edge = randEdge();
-            s.erase(tmp_edge);
-            g[tmp_edge.first][tmp_edge.second] = 0;
-            printf("e %d %d\n", tmp_edge.first, tmp_edge.second);
+            //s.erase(tmp_edge);
+            int x = tmp_edge.first;
+            int y = tmp_edge.second;
+            int w = randint(0, 1) ? randint(1, g[x][y]) : g[x][y];
+
+            g[x][y] -= w;
+            if (g[x][y] == 0) {
+                s.erase(tmp_edge);
+            }
+            printf("i %d %d %d\n", x, y, -w);
 
         } else if (ty == 2) {
             if (subty == 0) {
