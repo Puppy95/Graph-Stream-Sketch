@@ -60,6 +60,7 @@ private:
 		vector<linknode*> buffer;
 		map<unsigned int, int> index;
 		int n;
+		int edge_num; // count the number of edges in the buffer to assist buffer size analysis. Self loop edge is not included as it does not use additional memory.
 		GSS(int width, int range, int p_num, int size,int f_num, bool usetable, int tablesize=0);
 		~GSS()
 		{
@@ -89,6 +90,7 @@ GSS::GSS(int width, int range, int p_num, int size,int f_num, bool usehashtable,
 	s = size; /*multiple rooms*/
 	f = f_num; /*finger print lenth*/
 	n = 0;
+	edge_num = 0;
 	value = new basket[w*w];
 	useT=usehashtable;
 	tablesize=TableSize;
@@ -197,6 +199,7 @@ void GSS::insert(string s1, string s2,int weight)// s1 is the ID of the source n
 						ins->weight = weight;
 						ins->next = NULL;
 						node->next = ins;
+						edge_num++;
 						break;
 					}
 					node = node->next;
@@ -216,6 +219,7 @@ void GSS::insert(string s1, string s2,int weight)// s1 is the ID of the source n
 					ins->weight = weight;
 					ins->next = NULL;
 					node->next = ins;
+					edge_num++;
 				}
 				else
 				{ 
@@ -274,6 +278,8 @@ void GSS::nodeSuccessorQuery(string s1, vector<string>&IDs)// query the successo
 		{
 			int tag = it->second;
 			linknode* node = buffer[tag];
+			if(node->weight!=0)
+				mapTable.getID(k1, IDs); // self-loop
 			node = node->next;
 			while (node != NULL)
 			{
@@ -325,6 +331,14 @@ void GSS::nodePrecursorQuery(string s1, vector<string>&IDs) // same as successor
 			}
 		}	
 	}
+	
+		map<unsigned int, int>::iterator it = index.find(k1);
+		if(it!=index.end())
+		{
+			if(buffer[it->second]->weight!=0)
+				mapTable.getID(k1, IDs);
+		}
+	
 			for (map<unsigned int, int>::iterator it = index.begin(); it != index.end(); ++it)
 		{
 			int tag = it->second;
@@ -601,6 +615,7 @@ int GSS::nodeValueQuery(string s1, int type) // s1 is the ID of the queried node
 		{
 			int tag = it->second;
 			linknode* node = buffer[tag];
+			weight += node->weight;
 			node = node->next;
 			while (node != NULL)
 			{
@@ -612,10 +627,13 @@ int GSS::nodeValueQuery(string s1, int type) // s1 is the ID of the queried node
 	else if (type==1)
 	{
 		unsigned int k1 = (h1 << f) + g1;
+		map<unsigned int, int>::iterator it = index.find(k1);
+		if(it!=index.end())
+			weight += buffer[it->second]->weight;
 		for (map<unsigned int, int>::iterator it = index.begin(); it != index.end(); ++it)
 		{
 			int tag = it->second;
-			linknode* node = buffer[tag];
+			linknode* node = buffer[tag];			
 			node = node->next;
 			while (node != NULL)
 			{
@@ -706,6 +724,8 @@ int GSS::nodeDegreeQuery(string s1, int type) // s1 is the ID of the queried nod
 		{
 			int tag = it->second;
 			linknode* node = buffer[tag];
+			if(node->weight!=0);
+				degree += mapTable.countIDnums(k1); // address self-loops first
 			node = node->next;
 			while (node != NULL)
 			{
@@ -717,6 +737,12 @@ int GSS::nodeDegreeQuery(string s1, int type) // s1 is the ID of the queried nod
 	else if (type == 1)
 	{
 		unsigned int k1 = (h1 << f) + g1;
+		map<unsigned int, int>::iterator it = index.find(k1); // address self-loops first
+		if(it!=index.end())
+		{
+			if(buffer[it->second]->weight!=0)
+				degree += mapTable.countIDnums(k1);
+		}
 		for (map<unsigned int, int>::iterator it = index.begin(); it != index.end(); ++it)
 		{
 			int tag = it->second;
