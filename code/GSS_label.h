@@ -9,12 +9,12 @@
 #include<stdlib.h>
 #include<bitset>
 #include<memory.h>
+#include "GraphSketchUndirected.h" 
 #ifndef HASHTABLE_H
 #define HASHTABLE_H
 #include "hashTable.h"
-#include "GraphSketchUndirected.h" 
-#include "VF2.h"
 #endif // HASHTABLE_H
+#include "VF2.h"
 using namespace std;
 #define prime 739
 #define bigger_p 1048576
@@ -42,8 +42,8 @@ struct labeled_Precursor
 };
 struct basket
 {
-	unsigned int src[Roomnum];
-	unsigned int dst[Roomnum];
+	unsigned short src[Roomnum];
+	unsigned short dst[Roomnum];
 	int  label[Roomnum];
 	int weight[Roomnum];
 	unsigned int idx;
@@ -143,10 +143,10 @@ void label_GSS::insert(int id1, int id2,int edgelabel, int nodelabel1, int nodel
 		unsigned int hash1 = (*hfunc[0])((unsigned char*)(s1.c_str()), s1.length());
 		unsigned int hash2 = (*hfunc[0])((unsigned char*)(s2.c_str()), s2.length());
 		int tmp = pow(2,f)-1;
-		unsigned int g1 = hash1 & tmp;
+		unsigned short g1 = hash1 & tmp;
 		if(g1==0) g1+=1;
 		unsigned int h1 = (hash1>>f)%w;
-		unsigned int g2 = hash2 & tmp;
+		unsigned short g2 = hash2 & tmp;
 		if(g2==0) g2+=1;
 		unsigned int h2 = (hash2>>f)%w;
 		
@@ -275,7 +275,7 @@ void label_GSS::nodeSuccessorQuery(int id1, vector<labeled_Successor> &LS)
 	string s1=ss1.str();
 	unsigned int hash1 = (*hfunc[0])((unsigned char*)(s1.c_str()), s1.length());
 	int tmp=pow(2,f)-1;
-	unsigned int g1=hash1 & tmp;
+	unsigned short g1=hash1 & tmp;
 	if(g1 == 0) g1 = g1+1;
 	unsigned int h1 = (hash1>>f)%w;
 	unsigned int k1 = (h1 << f) + g1;
@@ -325,6 +325,20 @@ void label_GSS::nodeSuccessorQuery(int id1, vector<labeled_Successor> &LS)
 		{
 			int tag = it->second;
 			linknode* node = buffer[tag];
+			if(node->weight!=0)
+			{
+				int label=node->label;
+				vector<labelednode> IDs;
+				mapTable.getID(node->key, IDs);
+				for(int it=0;it<IDs.size();it++)
+				{
+					labeled_Successor ls;
+					ls.edge_label=label;
+					ls.Successor=IDs[it].ID;
+					LS.push_back(ls);					
+				}
+			}
+				
 			node = node->next;
 			while (node != NULL)
 			{
@@ -350,7 +364,7 @@ void label_GSS::nodePrecursorQuery(int id1, vector<labeled_Precursor>&LP)
 	string s1=ss1.str();
 	unsigned int hash1 = (*hfunc[0])((unsigned char*)(s1.c_str()), s1.length());
 	int tmp=pow(2,f)-1;
-	unsigned int g1=hash1 & tmp;
+	unsigned short g1=hash1 & tmp;
 	if(g1 == 0) g1 += 1;
 	unsigned int h1=(hash1>>f)%w;
 	unsigned int k1 = (h1 << f) + g1;
@@ -397,6 +411,26 @@ void label_GSS::nodePrecursorQuery(int id1, vector<labeled_Precursor>&LP)
 			}
 		}	
 	}
+	map<int, int>::iterator it = index.find(k1);  // address self-loop
+	if (it != index.end())
+	{
+		int tag = it->second;
+		linknode* node = buffer[tag];
+		if(node->weight!=0)
+		{
+			int label=node->label;
+			vector<labelednode> IDs;
+			mapTable.getID(node->key, IDs);
+			for(int it=0;it<IDs.size();it++)
+			{
+				labeled_Precursor lp;
+				lp.edge_label=label;
+				lp.Precursor=IDs[it].ID;
+				LP.push_back(lp);					
+			}
+		}
+	} 
+	
 			for (map<int, int>::iterator it = index.begin(); it != index.end(); ++it)
 		{
 			int tag = it->second;
@@ -436,10 +470,10 @@ void label_GSS::edgeQuery(int id1, int id2, vector<labeled_edge_info> &info)
 	unsigned int hash1 = (*hfunc[0])((unsigned char*)(s1.c_str()), s1.length());
 	unsigned int hash2 = (*hfunc[0])((unsigned char*)(s2.c_str()), s2.length());
 	int tmp = pow(2, f) - 1;
-	unsigned int g1 = hash1 & tmp;
+	unsigned short g1 = hash1 & tmp;
 	if (g1 == 0) g1 += 1;
 	unsigned int h1 = (hash1 >> f) % w;
-	unsigned int g2 = hash2 & tmp;
+	unsigned short g2 = hash2 & tmp;
 	if (g2 == 0) g2 += 1;
 	unsigned int h2 = (hash2 >> f) % w;
 	int* tmp1 = new int[r];
@@ -509,10 +543,10 @@ bool label_GSS::query(int id1, int id2)
 	 unsigned int hash1 = (*hfunc[0])((unsigned char*)(s1.c_str()), s1.length());
 	 unsigned int hash2 = (*hfunc[0])((unsigned char*)(s2.c_str()), s2.length());
 	 int tmp = pow(2, f) - 1;
-	 int g1 = hash1 & tmp;
+	 unsigned short g1 = hash1 & tmp;
 	 if (g1 == 0) g1 += 1;
 	 int h1 = (hash1 >> f) % w;
-	 int g2 = hash2 & tmp;
+	 unsigned short g2 = hash2 & tmp;
 	 if (g2 == 0) g2 += 1;
 	 int h2 = (hash2 >> f) % w;
 	 int pos;
@@ -652,7 +686,7 @@ int label_GSS::nodeValueQuery(int id1, int type)
 	int weight = 0;
 	unsigned int hash1 = (*hfunc[0])((unsigned char*)(s1.c_str()), s1.length());
 	int tmp = pow(2, f) - 1;
-	int g1 = hash1 & tmp;
+	unsigned short g1 = hash1 & tmp;
 	if (g1 == 0) g1 += 1;
 	int h1 = (hash1 >> f) % w;
 	int* tmp1 = new int[r];
@@ -698,6 +732,7 @@ int label_GSS::nodeValueQuery(int id1, int type)
 		{
 			int tag = it->second;
 			linknode* node = buffer[tag];
+			weight += node->weight;
 			node = node->next;
 			while (node != NULL)
 			{
@@ -709,6 +744,9 @@ int label_GSS::nodeValueQuery(int id1, int type)
 	else if (type==1)
 	{
 		unsigned int k1 = (h1 << f) + g1;
+		map<int, int>::iterator it = index.find(k1);
+		if(it!=index.end())
+			weight += buffer[it->second]->weight;
 		for (map<int, int>::iterator it = index.begin(); it != index.end(); ++it)
 		{
 			int tag = it->second;
@@ -744,7 +782,7 @@ int label_GSS::nodeDegreeQuery(int id1, int type)
 	int degree = 0;
 	unsigned int hash1 = (*hfunc[0])((unsigned char*)(s1.c_str()), s1.length());
 	int tmp = pow(2, f) - 1;
-	int g1 = hash1 & tmp;
+	unsigned short g1 = hash1 & tmp;
 	if (g1 == 0) g1 += 1;
 	int h1 = (hash1 >> f) % w;
 	int* tmp1 = new int[r];
@@ -765,7 +803,20 @@ int label_GSS::nodeDegreeQuery(int id1, int type)
 				{
 					if ((((value[pos].idx >> ((j << 3)))&((1 << 4) - 1)) == i) && (value[pos].src[j] == g1))
 					{
-						++degree;
+						 int tmp_g = value[pos].dst[j];
+						 int tmp_s = ((value[pos].idx >> ((j << 3) + 4))&((1 << 4) - 1));
+				
+						 int shifter = tmp_g;
+						 for (int v = 0; v < tmp_s; v++)
+							 shifter = (shifter*timer + prime) % bigger_p;
+						 int tmp_h = k;
+						 while (tmp_h < shifter)
+							 tmp_h += w;
+						 tmp_h -= shifter;
+						 unsigned int val = (tmp_h << f) + tmp_g;
+						 
+						 
+						 degree+=mapTable.countIDnums(val);
 					}
 				}
 			}
@@ -776,7 +827,19 @@ int label_GSS::nodeDegreeQuery(int id1, int type)
 				{
 					if ((((value[pos].idx >> ((j << 3) + 4))&((1 << 4) - 1)) == i) && (value[pos].dst[j] == g1))
 					{
-						++degree;
+						int tmp_g = value[pos].src[j];
+						 int tmp_s = ((value[pos].idx >> (j << 3))&((1 << 4) - 1));
+				
+						 int shifter = tmp_g;
+						 for (int v = 0; v < tmp_s; v++)
+							 shifter = (shifter*timer + prime) % bigger_p;
+						 int tmp_h = k;
+						 while (tmp_h < shifter)
+							 tmp_h += w;
+						 tmp_h -= shifter;
+						 unsigned int val = (tmp_h << f) + tmp_g;
+						 
+						degree+=mapTable.countIDnums(val);
 					}
 				}
 			}
@@ -791,10 +854,12 @@ int label_GSS::nodeDegreeQuery(int id1, int type)
 		{
 			int tag = it->second;
 			linknode* node = buffer[tag];
+			if(node->weight!=0);
+				degree += mapTable.countIDnums(k1); // address self-loops first
 			node = node->next;
 			while (node != NULL)
 			{
-				++degree;
+				degree+=mapTable.countIDnums(node->key);
 				node = node->next;
 			}
 		}
@@ -802,113 +867,29 @@ int label_GSS::nodeDegreeQuery(int id1, int type)
 	else if (type == 1)
 	{
 		unsigned int k1 = (h1 << f) + g1;
+		map<int, int>::iterator it = index.find(k1); // address self-loops first
+		if(it!=index.end())
+		{
+			if(buffer[it->second]->weight!=0)
+				degree += mapTable.countIDnums(k1);
+		}
 		for (map<int, int>::iterator it = index.begin(); it != index.end(); ++it)
 		{
 			int tag = it->second;
 			linknode* node = buffer[tag];
+			int src = node->key;
 			node = node->next;
 			while (node != NULL)
 			{
 				if (node->key == k1)
-					++degree; 
+					 degree+=mapTable.countIDnums(src);
 				node = node->next;
 			}
 		}
 	}
 	return degree;
 }
-void hvinsert(unsigned int hash, std::vector<hashvalue> &v)
-{
-	bool find=false;
-	for(int i=0;i<v.size();i++)
-	{
-		if (hash==v[i].key)
-		{
-			v[i].IDnum++;
-			find=true;
-			break;
-		}
-	}
-	if(!find)
-	{
-		hashvalue hv;
-		hv.key=hash;
-		hv.IDnum=1;
-		v.push_back(hv);
-	}
-	return;
-}
-int GSS::TriangleCounting()
-{
-	GSketch* gs = new GSketch;
-	for(int i=0;i<tablesize;i++)
-	{
-		hashTableNode<string> *np=mapTable.table[i];
-		vector<hashvalue> nodes;
-		for(;np!=NULL;np=np->next)
-		 	hvinsert(np->key,nodes);
-		int nodenum=nodes.size();
-		for(int j=0;j<nodenum;j++)
-		{
-			//cout<<nodes[j].key<<' '<<nodes[j].IDnum<<endl;
-			gs->insert_node(nodes[j].key, nodes[j].IDnum);
-		}
-		nodes.clear();
-	}
-	for(int i=0;i<w;i++)
-	{
-		int row=i*w;
-		for(int k=0;k<w;k++)
-		{
-			int pos=row+k;
-			for(int j=0;j<s;j++)
-			{
-				if(value[pos].src[j]>0)
-				{
-					unsigned int tmp_g1 = value[pos].src[j];
-					unsigned int tmp_s1 = ((value[pos].idx >> (j << 3))&((1 << 4) - 1));
-					
-					int shifter = tmp_g1;
-					for (int v = 0; v < tmp_s1; v++)
-						shifter = (shifter*timer + prime) % bigger_p;
-					int tmp_h1 = i;
-					while (tmp_h1 < shifter)
-						tmp_h1 += w;
-					tmp_h1 -= shifter;
-						 
-					unsigned int val1 = (tmp_h1 << f) + tmp_g1;
-					
-					 int tmp_g2 = value[pos].dst[j];
-					 int tmp_s2 = ((value[pos].idx >> ((j << 3) + 4))&((1 << 4) - 1));
-				
-					 shifter = tmp_g2;
-					 for (int v = 0; v < tmp_s2; v++)
-						shifter = (shifter*timer + prime) % bigger_p;
-					  int tmp_h2 = k;
-					  while (tmp_h2 < shifter)
-							 tmp_h2 += w;
-					  tmp_h2 -= shifter;
-					  unsigned int val2 = (tmp_h2 << f) + tmp_g2;
-					  gs->insert_edge(val1,val2);
-				}
-			}
-		}
-	}
-	for(int i=0;i<buffer.size();i++)
-	{
-		linknode* np=buffer[i];
-		unsigned int src=np->key;
-		np=np->next;
-		for(;np!=NULL;np=np->next)
-		{
-		  unsigned int dst=np->key;
-		  gs->insert_edge(src, dst);
-		}
-	}
-	gs->clean();
-	return gs->countTriangle();
-	delete gs;
-}
+
 void label_GSS::graph_match(vector<graph*> &gq,string file, vector<int> &matchcount)
 { 
 	graph* gd =new graph;
@@ -948,5 +929,4 @@ void label_GSS::graph_match(vector<graph*> &gq,string file, vector<int> &matchco
 }
 delete gd;
 }
-
 
