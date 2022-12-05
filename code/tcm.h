@@ -46,13 +46,13 @@ bool TCM::transquery(const unsigned char*v1, const unsigned char*v2, int len1,in
 		bool* checked = new bool[width];
 		for(int j=0;j<width;j++)
 			checked[j] = false;
-		unsigned int src=((*hfunc[2*i])(v1,len1))%depth;
-		unsigned int dest=((*hfunc[2*i])(v2,len2))%width;
+		unsigned int src=((*hfunc[i])(v1,len1))%depth;
+		unsigned int dest=((*hfunc[i])(v2,len2))%width;
 		queue<int> q;
 		unsigned int v1 = src;
 		unsigned int v2 = dest;
 		int hash = v1*width+v2;
-		if(value[i][hash]>0)//?¡À?¨®?¨¦¡ä?
+		if(value[i][hash]>0)//?Â¡Ã€?Â¨Â®?Â¨Â¦Â¡Ã¤?
 			continue;
 		else
 		{
@@ -134,8 +134,8 @@ int TCM::query(const unsigned char* v1,const unsigned char* v2,int len1,int len2
     int min=INT32_MAX;
     for(int i=0;i<hashnum;i++)
     {
-    	unsigned int hash1 = ((*hfunc[2*i])(v1,len1))%depth;
-    	unsigned int hash2 = ((*hfunc[2*i])(v2,len2))%width;
+    	unsigned int hash1 = ((*hfunc[i])(v1,len1))%depth;
+    	unsigned int hash2 = ((*hfunc[i])(v2,len2))%width;
     	int v = value[i][hash1*width+hash2];
     	if(v<min)
     	min = v;
@@ -151,7 +151,7 @@ int TCM::nodequery(const unsigned char* v1, int len, int type )
 		int min = INT32_MAX;
 		for(int i=0;i<hashnum;i++)
 		{
-			unsigned int hash1 = ((*hfunc[2*i])(v1,len))%depth;
+			unsigned int hash1 = ((*hfunc[i])(v1,len))%depth;
 			hash1 = hash1*width;
 			int sum=0;
 			for(int j=0;j<width;j++)
@@ -171,7 +171,7 @@ int TCM::nodequery(const unsigned char* v1, int len, int type )
 				int min = INT32_MAX;
 		for(int i=0;i<hashnum;i++)
 		{
-			unsigned int hash1 = ((*hfunc[2*i])(v1,len))%width;
+			unsigned int hash1 = ((*hfunc[i])(v1,len))%width;
 			int sum=0;
 			for(int j=0;j<depth;j++)
 				sum+=value[i][j*width+hash1];
@@ -192,7 +192,7 @@ int TCM::nodedegreequery(const unsigned char* v1, int len, int type)
 	{
 		for (int i = 0; i<hashnum; i++)
 		{
-			unsigned int hash1 = ((*hfunc[2 * i])(v1, len)) % depth;
+			unsigned int hash1 = ((*hfunc[i])(v1, len)) % depth;
 			hash1 = hash1*width;
 			int sum = 0;
 			for (int j = 0; j<width; j++)
@@ -209,7 +209,7 @@ int TCM::nodedegreequery(const unsigned char* v1, int len, int type)
 	{
 		for (int i = 0; i<hashnum; i++)
 		{
-			unsigned int hash1 = ((*hfunc[2 * i])(v1, len)) % width;
+			unsigned int hash1 = ((*hfunc[i])(v1, len)) % width;
 			int sum = 0;
 			for (int j = 0; j < depth; j++)
 			{
