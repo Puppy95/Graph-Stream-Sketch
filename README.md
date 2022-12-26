@@ -13,6 +13,7 @@ Graph Stream Sketch user interface:
 * nodePrecursorQuery: Query for the precursor of a given node
 * TriangleCouning: Count the number of triangles in a graph
 Details can be seen in the comments in the code
+Note that the number of rooms in each bucket is controlled by a macro definition Roomnum.
 
 GSS_label.h
 ------------
