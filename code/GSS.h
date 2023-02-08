@@ -27,7 +27,7 @@ struct basket
 	unsigned short src[Roomnum];
 	unsigned short dst[Roomnum];
 	short  weight[Roomnum];
-	unsigned int idx;
+	unsigned int idx; // need to change to unsigned long long if Roomnum is larger than 4.
 };
 struct mapnode
 {
@@ -61,7 +61,7 @@ private:
 		map<unsigned int, int> index;
 		int n;
 		int edge_num; // count the number of edges in the buffer to assist buffer size analysis. Self loop edge is not included as it does not use additional memory.
-		GSS(int width, int range, int p_num, int size,int f_num, bool usetable, int tablesize=0);
+		GSS(int width, int range, int p_num, int size,int f_num, bool usetable, int tablesize=0); // table size is set approximately the the number of nodes in the graph.
 		~GSS()
 		{
 			delete[] value;
