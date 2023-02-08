@@ -39,6 +39,7 @@ hashfunction
 
 hashTable.h
 ------------
-hashTable
+hashtable
+
 ------------
 The code of TRIEST in experiment of the paper is downloaded from https://github.com/aepasto/triest provided by the authors. The code for SJtree is on https://github.com/Puppy95/timingsubg. Further arrangement of the code will be made before publication.
