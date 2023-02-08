@@ -20,7 +20,7 @@ private:
     int tablesize;
 public:
 	hashTable<string>* mapTable;
-    TCM(int w,int d,int h, bool usetable, int tablesize=0);
+    TCM(int w,int d,int h, bool usetable, int tablesize=0); // table size is set approximately to the node number in the graph.
     ~TCM()
     {
 		for (int i=0; i<hashnum; ++i)
