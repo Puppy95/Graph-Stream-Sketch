@@ -1,5 +1,5 @@
 
-The archive 'GSS-ICDE' contains code for the ICDE paper 'Fast and Accurate graph stream summarization', and 'GSS-TKDE' archive contains the code for TKDE paper :'Graph stream sketch: Summarizing graph streams with high speed and accuracy'. 
+The archive 'code' contains code for the ICDE paper 'Fast and Accurate graph stream summarization', and 'GSS-TKDE' archive contains the code for TKDE paper :'Graph stream sketch: Summarizing graph streams with high speed and accuracy'. 
 We recommend to use the TKDE version, it is more organized and has more improved versions. The folloing instruction is based on the TKDE version. And there is anothe readme fild in the GSS-ICDE archive for the ICDE version.
 ## Compile and Execution
 
