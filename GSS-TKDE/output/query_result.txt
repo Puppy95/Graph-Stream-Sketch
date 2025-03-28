@@ -1,0 +1,2 @@
+Width GSS(fsize=12) GSS(fsize=16) TCM(8*memory)
+150 0.0350849 0.00204604 NA
